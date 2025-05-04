@@ -1,11 +1,18 @@
 import express from "express";
 import 'dotenv/config';
 import { parse } from "dotenv";
+import { query, body, validationResult, matchedData } from "express-validator"
 
 const app = express();
 
+// const middleware1 = (request, response, next) => {
+//     console.log("RUNNING MIDDLEWARE GLOBAL")
+//     next()
+// }
+
 // MIDDLEWARES
 app.use(express.json())
+// app.use(middleware1)
 
 const PORT = process.env.PORT || 3000;
 
@@ -20,7 +27,31 @@ app.get("/", (request, response) => {
     response.status(200).send({ "message": "Working" });
 })
 
-app.get("/api/users", (request, response) => {
+app.get("/api/users", 
+    // (request, response, next) => {
+    //     console.log("RUNNING MIDDLEWARE 1 OF USERS")
+    //     next()
+    // }, 
+    // (request, response, next) => {
+    //     console.log("RUNNING MIDDLEWARE 2 OF USERS")
+    //     next();
+    // }, 
+    // (request, response, next) => {
+    //     console.log("RUNNING MIDDLEWARE 3 OF USERS")
+    //     next();
+    // },
+    query("filter")
+    .optional()
+    .notEmpty().withMessage("SHOULDN'T BE EMPTY")
+    .isLength({max: 20, min: 3}).withMessage("FILTER VALUE SHOULD BE BETWEEN 3 TO 20 CHARACTERS"), (request, response) => {
+
+    const result = validationResult(request)
+    if(!(result.errors.length === 0)){
+        return response.status(400).send({
+            "message": "BAD REQUEST ERROR",
+            "errors": result.errors
+        })
+    }
     const filterValue = request.query.filter
     const found = filterValue == undefined ? null : users.filter((user) => user.username.startsWith(filterValue))
 
@@ -32,7 +63,9 @@ app.get("/api/users", (request, response) => {
 
 
     return response.status(201).send(users);
-})
+
+    }
+)
 
 // Route Params
 app.get("/api/users/:id", (request, response) => {
