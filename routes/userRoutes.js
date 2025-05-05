@@ -4,7 +4,21 @@ import { users } from "../utils/userData.js"
 
 const router = Router()
 
-router.get("/api/users", query("filter").optional().notEmpty().withMessage("SHOULDN'T BE EMPTY").isLength({max: 20, min: 3}).withMessage("FILTER VALUE SHOULD BE BETWEEN 3 TO 20 CHARACTERS"), (request, response) => {
+router.get(
+    "/api/users", 
+    query("filter").optional().notEmpty().withMessage("SHOULDN'T BE EMPTY").isLength({max: 20, min: 3}).withMessage("FILTER VALUE SHOULD BE BETWEEN 3 TO 20 CHARACTERS"), 
+    
+    (request, response) => {
+
+    console.log(request.session.id)
+    request.sessionStore.get(request.session.id, (err, sessionData) => {
+        if(err){
+            console.log(err);
+            throw err;
+        }
+        console.log(sessionData)
+    })
+
 
     const result = validationResult(request)
     if(!(result.errors.length === 0)){
@@ -24,9 +38,8 @@ router.get("/api/users", query("filter").optional().notEmpty().withMessage("SHOU
 
     if(filterValue) return response.status(201).send(found);
 
-
     return response.status(201).send(users);
-
+    
     }
 )
 
