@@ -3,12 +3,13 @@ import 'dotenv/config';
 import session from "express-session";
 import userRoutes from "./routes/userRoutes.js"
 import authRoutes from "./routes/authRoutes.js"
-import { users } from "./utils/userData.js";
 import passport from "passport";
 import "./strategies/google-strategy.js"
-// import "./strategies/local-strategy.js"
+import "./strategies/local-strategy.js"
 import mongoose from "mongoose";
 import GoogleUser from "./models/google-users.model.js";
+import MongoStore from "connect-mongo";
+// import { users } from "./utils/userData.js";
 
 export const app = express();
 
@@ -25,7 +26,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         maxAge: 60000 * 60 * 24
-    }
+    },
+    store: MongoStore.create({
+        client: mongoose.connection.getClient()
+    })
 }))
 
 app.use(passport.initialize())
