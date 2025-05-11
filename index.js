@@ -5,8 +5,10 @@ import userRoutes from "./routes/userRoutes.js"
 import authRoutes from "./routes/authRoutes.js"
 import { users } from "./utils/userData.js";
 import passport from "passport";
-import "./strategies/local-strategy.js"
+import "./strategies/google-strategy.js"
+// import "./strategies/local-strategy.js"
 import mongoose from "mongoose";
+import GoogleUser from "./models/google-users.model.js";
 
 export const app = express();
 
@@ -45,10 +47,33 @@ app.post("/api/auth", passport.authenticate('local', {failureRedirect: "/", fail
     response.send({msg: "Logged In Successfully"})
 })
 
-app.get("/", (request, response) => {
+app.get("/",(request, response) => {
     // response.cookie("naam" , "lakhan", {maxAge: 60000 * 60})
     // console.log(request.session)
     // console.log(request.session.id)
     // request.session.visited = true
     response.status(200).send({ "message": "Working" , "loggedinUser": request.user ?? "Not Logged In"});
+})
+
+app.get("/api/auth/google", passport.authenticate("google"))
+
+app.get("/api/auth/google/protected", passport.authenticate("google") , (request, response) => {
+    response.status(200).send({ "message": "Working" , "loggedinUser": request.user ?? "Not Logged In"});
+})
+
+app.get("/api/auth/google/logout", (request, response) => {
+    request.logout((err) => {
+        if(err) return next(err)
+        response.redirect("/")
+    })
+})
+
+app.get("/api/google/users", async (request, response) => {
+    let users;
+    try {
+        users = await GoogleUser.find()
+    } catch (error) {
+        return response.status(400).send(error)
+    }
+    return response.status(200).send(users)
 })
